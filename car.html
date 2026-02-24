@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Car Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #222;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: white;
+        }
+
+        #gameArea {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            margin: 20px auto;
+            background: #555;
+            overflow: hidden;
+            border: 4px solid white;
+        }
+
+        .roadLine {
+            position: absolute;
+            width: 10px;
+            height: 100px;
+            background: white;
+            left: 195px;
+        }
+
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background: red;
+            bottom: 10px;
+            left: 175px;
+            border-radius: 10px;
+        }
+
+        .enemy {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background: yellow;
+            border-radius: 10px;
+        }
+
+        #score {
+            font-size: 20px;
+        }
+
+        #gameOver {
+            display: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🚗 Car Dodge Game</h1>
+<div id="score">Score: 0</div>
+
+<div id="gameArea">
+    <div id="player"></div>
+</div>
+
+<div id="gameOver">
+    <h2>Game Over!</h2>
+    <button onclick="startGame()">Restart</button>
+</div>
+
+<script>
+let player = document.getElementById("player");
+let gameArea = document.getElementById("gameArea");
+let scoreDisplay = document.getElementById("score");
+let gameOverScreen = document.getElementById("gameOver");
+
+let playerX = 175;
+let score = 0;
+let gameSpeed = 5;
+let keys = {};
+let enemies = [];
+let gameRunning = true;
+
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+function createEnemy() {
+    let enemy = document.createElement("div");
+    enemy.classList.add("enemy");
+    enemy.style.top = "-100px";
+    enemy.style.left = Math.floor(Math.random() * 350) + "px";
+    gameArea.appendChild(enemy);
+    enemies.push(enemy);
+}
+
+function moveEnemies() {
+    enemies.forEach((enemy, index) => {
+        let enemyTop = parseInt(enemy.style.top);
+        enemy.style.top = enemyTop + gameSpeed + "px";
+
+        if (enemyTop > 600) {
+            enemy.remove();
+            enemies.splice(index, 1);
+            score++;
+            scoreDisplay.innerText = "Score: " + score;
+        }
+
+        if (isCollide(player, enemy)) {
+            endGame();
+        }
+    });
+}
+
+function isCollide(a, b) {
+    let aRect = a.getBoundingClientRect();
+    let bRect = b.getBoundingClientRect();
+    return !(
+        aRect.bottom < bRect.top ||
+        aRect.top > bRect.bottom ||
+        aRect.right < bRect.left ||
+        aRect.left > bRect.right
+    );
+}
+
+function movePlayer() {
+    if (keys["ArrowLeft"] && playerX > 0) {
+        playerX -= 7;
+    }
+    if (keys["ArrowRight"] && playerX < 350) {
+        playerX += 7;
+    }
+    player.style.left = playerX + "px";
+}
+
+function gameLoop() {
+    if (!gameRunning) return;
+
+    movePlayer();
+    moveEnemies();
+
+    requestAnimationFrame(gameLoop);
+}
+
+function startGame() {
+    gameRunning = true;
+    score = 0;
+    scoreDisplay.innerText = "Score: 0";
+    gameOverScreen.style.display = "none";
+    enemies.forEach(enemy => enemy.remove());
+    enemies = [];
+    setInterval(createEnemy, 1500);
+    requestAnimationFrame(gameLoop);
+}
+
+function endGame() {
+    gameRunning = false;
+    gameOverScreen.style.display = "block";
+}
+
+startGame();
+</script>
+
+</body>
+</html>
